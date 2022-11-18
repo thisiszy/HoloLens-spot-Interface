@@ -1,3 +1,4 @@
+using Microsoft.MixedReality.Toolkit;
 using RosMessageTypes.Sensor;
 using Unity.Robotics.ROSTCPConnector;
 using UnityEngine;
@@ -10,10 +11,12 @@ public class ImageMsgSubscriber : MonoBehaviour
     [SerializeField]
     string m_TopicName = "/rgb/image_raw";
 
-    // ROS Connector
-    ROSConnection m_Ros;
     public GameObject m_screen;
-    public RawImage m_image;
+    public bool is_display_enabled = true;
+
+    // ROS Connector
+    private ROSConnection m_Ros;
+    private RawImage m_image;
     private Texture2D tex = null;
     private byte[] img_data;
     private bool is_msg_valid = false;
@@ -21,6 +24,7 @@ public class ImageMsgSubscriber : MonoBehaviour
     void Start()
     {
         // Get ROS connection static instance
+        CoreServices.SpatialAwarenessSystem.Disable();
         m_Ros = ROSConnection.GetOrCreateInstance();
         m_Ros.Subscribe<CompressedImageMsg>(m_TopicName, ImageMsgArrive);
         m_image = m_screen.GetComponent<RawImage>();
@@ -40,10 +44,9 @@ public class ImageMsgSubscriber : MonoBehaviour
 
     void Update()
     {
-        if (is_msg_valid)
+        if (is_msg_valid && is_display_enabled)
         {
             tex.LoadImage(img_data);
-            tex.Apply();
             m_image.texture = tex;
             is_msg_valid = false;
         }
